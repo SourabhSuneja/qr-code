@@ -64,23 +64,35 @@
             background-color: #45a049;
         }
 
-         .center-text {
-         font-size: 50px;
-         font-weight: bold;
-         color: #4CAF50;
-         }
-
-         .pulsate {
-         text-align: center;
+         #captured-text-container {
          position: fixed;
          top: 50%;
          left: 50%;
          transform: translate(-50%, -50%);
-         animation: pulse 0.8s infinite;
+         display: none;
+         z-index: 9999;
          }
 
-         #captured-text {
-          display: none;
+         .pulsate {
+         animation: pop-up 1s forwards;
+         }
+
+         #captured-text {         
+         font-size: 36px;
+         font-weight: bold;
+         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+         border-radius: 10px;
+         padding: 20px;
+         box-shadow: 0px 0px 20px rgba(0,0,0,0.3);
+         color: white;
+         background-color: #333;
+         text-align: center;
+         }
+
+         @keyframes pop-up {
+         0% {transform: scale(0) translateY(100px);}
+         50% {transform: scale(1.1) translateY(-50px);}
+         100% {transform: scale(1) translateY(0);}
          }
 
          @keyframes pulse {
@@ -122,14 +134,15 @@
             <div id="result-list"></div>
         </div>
     </div>
-
-    <div id="captured-text" class="center-text">Captured!</div>
-
+    <div id="captured-text-container">
+        <div id="captured-text">Captured!</div>
+    </div>
     <script>
         const resultList = new Set([]);
         const html5QrCode = new Html5Qrcode("reader"); // Use the correct class
         const resultContainer = document.getElementById("result-list");
         const capturedText = document.getElementById("captured-text");
+        const capturedTextContainer = document.getElementById("captured-text-container");
         let isScanning = false;
 
         function startScanner() {
@@ -140,7 +153,7 @@
                 .start(
                     { facingMode: "environment" }, // Use the back camera
                     {
-                        fps: 10, // Set the scanning rate
+                        fps: 20, // Set the scanning rate
                         qrbox: { width: 250, height: 250 }, // QR code box dimensions
                     },
                     (decodedText, decodedResult) => {
@@ -191,13 +204,14 @@
 
                 // Add to results set  
                 resultList.add(decodedText);
-                // Show Captured text
-                capturedText.style.display = 'block';
+                // Show Captured text container
+                capturedTextContainer.style.display = 'block';
                 capturedText.classList.add('pulsate');
-                // Hide Captured text after 1s
+                // Hide Captured text container after set duration
                 setTimeout(() => {
-                     capturedText.style.display = 'none';
+                     capturedTextContainer.style.display = 'none';
                      capturedText.classList.remove('pulsate');
+                     void capturedText.offsetWidth;
                 }, 1000);
             } catch (err) {
                 alert("Invalid QR code format. Please scan a valid QR code.");
