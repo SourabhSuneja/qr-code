@@ -6,6 +6,9 @@
       <title>QR Codes for All Student</title>
       <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
       <style>
+         * {
+         max-height: 999999999px;
+         }
          body {
          font-family: Arial, sans-serif;
          margin: 0;
@@ -35,6 +38,16 @@
          margin-top: 10px;
          font-size: 14px;
          color: #000;
+         }
+         .qr-label h2 {
+         margin: 4px 0;
+         padding: 0;
+         font-size: 15px;
+         color: #000;
+         }
+         .qr-label strong {
+         margin-top: 6px;
+         display: block;
          }
          button {
          display: inline-block;
@@ -80,6 +93,10 @@
                button, h1 {
                    display: none;
                }
+               html, body, #qr-grid {
+                   padding: 0;
+                   margin: 0;
+               }
          }
       </style>
    </head>
@@ -105,8 +122,8 @@
                  label.className = 'qr-label';
          
                  // Prepare label text
-                 const labelText = `Name: ${item.Name}, Class: ${item.Class}, House: ${item.House}`;
-                 label.textContent = labelText;
+                 const labelText = `<h2>Participant Details</h2>Name: ${item.Name}, Class: ${item.Class}, House: ${item.House}<br><strong>Pin this QR code to your T-shirt or blazer.</strong>`;
+                 label.innerHTML = labelText;
          
                  // Generate QR code
                  const qrData = JSON.stringify(item);
@@ -132,7 +149,7 @@
          const studentNames = {};
          const baseURL = "https://sourabhsuneja.github.io/quiz/students/";
          let allStudents;
-                  const classes = [
+         const classes = [
           '1-A1', '1-A2', '1-A3',
           '2-A1', '2-A2', '2-A3',
           '3-A1', '3-A2', '3-A3', '3-A4',
@@ -145,7 +162,8 @@
           '10-A1', '10-A2',
           '11-COM', '11-HUM', '11-SCI',
           '12-COM', '12-HUM', '12-SCI'
-          ];
+          ]; 
+          
          
           async function fetchNamesForClassSection(classSection) {
           try {
