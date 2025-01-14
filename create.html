@@ -207,5 +207,59 @@
             document.getElementById('generating-text').style.display = 'none';
           }
       </script>
+      <script>
+// Function to parse CSV data (will be required in case data for QR codes has to come from an Excel file)
+function parseCSV(csvText, separator = ',') {
+  const rows = [];
+  let currentRow = [];
+  let currentCell = '';
+  let insideQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
+
+    if (insideQuotes) {
+      if (char === '"' && nextChar === '"') {
+        // Handle escaped double quotes
+        currentCell += '"';
+        i++; // Skip the next quote
+      } else if (char === '"') {
+        // End of quoted cell
+        insideQuotes = false;
+      } else {
+        // Add character to the current cell
+        currentCell += char;
+      }
+    } else {
+      if (char === '"') {
+        // Start of quoted cell
+        insideQuotes = true;
+      } else if (char === separator) {
+        // End of cell
+        currentRow.push(currentCell);
+        currentCell = '';
+      } else if (char === '\n' || (char === '\r' && nextChar === '\n')) {
+        // End of row (handles \n and \r\n)
+        currentRow.push(currentCell);
+        rows.push(currentRow);
+        currentRow = [];
+        currentCell = '';
+        if (char === '\r') i++; // Skip '\n' in \r\n
+      } else {
+        // Add character to the current cell
+        currentCell += char;
+      }
+    }
+  }
+
+  // Add the last cell and row
+  currentRow.push(currentCell);
+  rows.push(currentRow);
+
+  return rows;
+}
+
+      </script>
    </body>
 </html>
