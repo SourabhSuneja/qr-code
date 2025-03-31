@@ -3,152 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Scan the QR code on your question paper to access the answer key for your computer exam.">
-    <title>Scan QR Code - Answer Key Access</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="description" content="Scan QR codes from your computer exam paper to access answer keys">
+    <title>Computer Exam Answer Key Scanner</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- HTML5 QR Code Scanner -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    
     <style>
-        * {
-            max-height: 9999999px;
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --error: #ef476f;
         }
-        body {
-            font-family: 'Poppins', sans-serif;
-            text-align: center;
-            background-color: #f4f4f4;
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 500px;
-            margin: 50px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
         h1 {
-            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
         }
+        
         p {
-            color: #555;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            font-weight: bold;
         }
-        #reader {
+        
+        main {
+            flex: 1;
+            padding: 2rem 1rem;
+            max-width: 900px;
+            margin: 0 auto;
             width: 100%;
-            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .scan-btn {
-            background: #007bff;
+        
+        .scanner-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 1rem auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            background: white;
+        }
+        
+        #qr-reader {
+            width: 100%;
+            border: none !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+        }
+        
+        #qr-reader__scan_region {
+            background: var(--light);
+        }
+        
+        #qr-reader__dashboard_section_csr span {
+            display: none; /* Hide html5qrcode select camera text */
+        }
+        
+        #qr-reader__camera_selection {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        #scanner-btn {
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 16px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 5px;
-            transition: 0.3s;
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
         }
-        .scan-btn:hover {
-            background: #0056b3;
+        
+        #scanner-btn:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.4);
         }
+        
+        #scanner-btn i {
+            margin-right: 10px;
+        }
+        
+        .qr-example {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .qr-example h3 {
+            font-family: 'Poppins', sans-serif;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+        }
+        
+        .qr-image {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-image img {
+             width: 100%;
+             display: block;
+             margin: auto;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: white;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+        
+        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
-            min-width: 260px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 24px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            text-align: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
         }
-        .modal button, .modal a {
-            background: #dc3545;
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalAppear 0.3s ease-out forwards;
+        }
+        
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-icon {
+            font-size: 3.5rem;
+            color: var(--error);
+            margin-bottom: 1rem;
+        }
+        
+        .modal h2 {
+            color: var(--dark);
+            margin-bottom: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .modal p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .retry-btn {
+            background-color: var(--primary);
             color: white;
             border: none;
-            padding: 10px 15px;
-            font-size: 16px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
-            border-radius: 5px;
-            display: inline-block;
-            text-decoration: none;
+            transition: all 0.3s ease;
         }
-        .success-modal a {
-            background: #28a745;
+        
+        .retry-btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        /* Hide html5-qrcode bottom buttons */
+        #qr-reader__scan_region ~ div:last-child {
+            display: none !important;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            p {
+                font-size: 1rem;
+            }
+            
+            #scanner-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1.1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Scan Your QR Code</h1>
-        <p>Point your camera at the QR code on your question paper to access the answer key.</p>
-        <div id="reader"></div>
-        <button class="scan-btn" onclick="startScanner()"><i class="fa fa-qrcode"></i> Capture QR Code</button>
+    <header>
+        <h1><i class="fas fa-qrcode"></i> Answer Key Scanner</h1>
+        <p>Find the QR code on your question paper and scan it to see the answers to your Computer Exam.</p>
+    </header>
+    
+    <main>
+        <div class="scanner-container" id="scanner-container" style="display: none;">
+            <div id="qr-reader"></div>
+        </div>
+        
+        <button id="scanner-btn" onclick="startScanner()">
+            <i class="fas fa-camera"></i> Start Scanning
+        </button>
+        
+        <div class="qr-example">
+            <h3>Example QR Code</h3>
+            <div class="qr-image">
+                <img src="https://sourabhsuneja.github.io/academic-resources/images/sample-qr.png" alt="Example QR Code">
+            </div>
+            <p>Look for a QR code like this on your question paper.</p>
+        </div>
+    </main>
+    
+    <div class="modal" id="error-modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2>Oops!</h2>
+            <p>This doesn't look like an answer key QR code. Please try again with the QR code on your question paper.</p>
+            <button class="retry-btn" onclick="closeModal()">Try Again</button>
+        </div>
     </div>
-
-    <div id="errorModal" class="modal">
-        <p>Invalid QR Code. Please try again.</p>
-        <button onclick="closeModal('errorModal')">Retry</button>
-    </div>
-
-    <div id="successModal" class="modal success-modal">
-        <p>Scanned URL:</p>
-        <p id="scannedUrl"></p>
-        <a id="openUrl" href="#" target="_blank">Open Link</a>
-        <button onclick="closeModal('successModal')">Close</button>
-    </div>
-
+    
+    <footer>
+        <p>Crafted by Sourabh Sir with ♥️</p>
+    </footer>
+    
     <script>
-        let scanner;
-        let isScanning = false;  // Track if scanning is active
-
+        let html5QrCode;
+        const modal = document.getElementById('error-modal');
+        const scannerContainer = document.getElementById('scanner-container');
+        
         function startScanner() {
-            if (isScanning) return;  // Prevent duplicate instances
-
-            scanner = new Html5Qrcode("reader");
-            isScanning = true;
-
-            scanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: 250 },
-                (decodedText) => {
-                    scanner.stop().then(() => {
-                        isScanning = false; // Mark scanner as stopped
-
-                        if (isValidURL(decodedText)) {
-                            document.getElementById("scannedUrl").textContent = decodedText;
-                            document.getElementById("openUrl").href = decodedText;
-                            document.getElementById("successModal").style.display = "block";
-                        } else {
-                            document.getElementById("errorModal").style.display = "block";
-                        }
-                    });
-                },
-                (error) => {}
-            );
+            scannerContainer.style.display = 'block';
+            document.getElementById('scanner-btn').style.display = 'none';
+            
+            html5QrCode = new Html5Qrcode("qr-reader");
+            const qrConfig = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                qrConfig, 
+                onScanSuccess, 
+                onScanFailure
+            ).catch((err) => {
+                console.error("Error starting scanner:", err);
+                showErrorModal("We couldn't access your camera. Please make sure you've given permission and try again.");
+                resetScanner();
+            });
         }
-
-        function isValidURL(string) {
+        
+        function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanning
+            html5QrCode.stop().then(() => {
+                console.log("QR Code scanning stopped");
+                
+                // Check if it's a valid URL
+                if (isValidURL(decodedText)) {
+                    // Valid URL - redirect
+                    console.log("Valid URL detected, redirecting to:", decodedText);
+                    window.location.href = decodedText;
+                } else {
+                    // Invalid URL - show error
+                    console.log("Invalid URL detected:", decodedText);
+                    showErrorModal();
+                }
+            }).catch((err) => {
+                console.error("Error stopping scanner:", err);
+            });
+        }
+        
+        function onScanFailure(error) {
+            // Handle scan failure silently (this is normal when no QR is in view)
+            console.debug(`QR scanning ongoing, no QR detected`);
+        }
+        
+        function isValidURL(str) {
             try {
-                new URL(string);
+                new URL(str);
+                // Additional check for exam answer URLs (customize as needed)
                 return true;
-            } catch (_) {
+            } catch (e) {
                 return false;
             }
         }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = "none";
-            restartScanner();
+        
+        function showErrorModal(message) {
+            if (message) {
+                document.querySelector('.modal p').textContent = message;
+            } else {
+                document.querySelector('.modal p').textContent = 
+                    "This doesn't look like an answer key QR code. Please try again with the QR code on your question paper.";
+            }
+            modal.style.display = 'flex';
         }
-
-        function restartScanner() {
-            if (!isScanning) {
-                startScanner();
+        
+        function closeModal() {
+            modal.style.display = 'none';
+            resetScanner();
+        }
+        
+        function resetScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    console.log("Scanner reset");
+                    scannerContainer.style.display = 'none';
+                    document.getElementById('scanner-btn').style.display = 'flex';
+                }).catch((err) => {
+                    console.error("Error stopping scanner:", err);
+                });
+            } else {
+                scannerContainer.style.display = 'none';
+                document.getElementById('scanner-btn').style.display = 'flex';
+            }
+        }
+        
+        // Close modal if clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
             }
         }
     </script>
-
 </body>
 </html>
