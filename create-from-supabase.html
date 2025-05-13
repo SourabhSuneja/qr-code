@@ -124,7 +124,7 @@
                  label.className = 'qr-label';
          
                  // Prepare label text
-                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}<br><strong>Paste this QR code in your diary.</strong>`;
+                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}<br><strong>Paste this QR code in your computer notebook.</strong>`;
                  label.innerHTML = labelText;
          
                  // Generate QR code
@@ -164,8 +164,8 @@
          "students",
          false, // fetchSingle
          "name, class, access_token",
-         [], // matchColumns
-         [], // matchValues
+         ["class"], // matchColumns
+         ["7-A3"], // matchValues
          "class", // orderByColumn
          "asc", // orderDirection
          [] // customFilters
