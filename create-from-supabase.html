@@ -91,21 +91,109 @@
          transform: translate(-50%, -50%) scale(1);
          }
          }
+         
+         /* Class Selection Dialog Styles */
+         #class-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+         }
+         
+         #class-dialog {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            animation: dialogFadeIn 0.3s ease-out;
+         }
+         
+         @keyframes dialogFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+         }
+         
+         #class-dialog h2 {
+            color: #2E7D32;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 24px;
+         }
+         
+         #class-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+         }
+         
+         #class-select:focus {
+            border-color: #4CAF50;
+         }
+         
+         #class-select option {
+            padding: 10px;
+         }
+         
+         #select-class-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+         }
+         
+         #select-class-btn:hover {
+            background-color: #2E7D32;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+         }
+         
          @media print {
-               button, h1 {
-                   display: none;
-               }
-               html, body, #qr-grid {
-                   padding: 0;
-                   margin: 0;
-               }
+         button, h1, #class-dialog-overlay {
+         display: none;
+         }
+         html, body, #qr-grid {
+         padding: 0;
+         margin: 0;
+         }
          }
       </style>
    </head>
    <body>
       <h1>QR Codes for JVP Students</h1>
+      
+      <!-- Class Selection Dialog -->
+      <div id="class-dialog-overlay">
+        <div id="class-dialog">
+            <h2>Select Class for QR Code Generation</h2>
+            <select id="class-select">
+                <option value="all">All Classes</option>
+                <!-- Options will be dynamically populated by JavaScript -->
+            </select>
+            <button id="select-class-btn">Generate QR Codes</button>
+        </div>
+      </div>
+      
       <div id="qr-grid"></div>
-      <button style="display: none" id="print-btn" onclick="printPage()">Print QR Codes</button>
+      <button id="print-btn" onclick="printPage()">Print QR Codes</button>
       <div id="generating-text" class="center-text">
          Generating
       </div>
@@ -114,6 +202,7 @@
          
          function generateAllQRCodes() {
              const qrGrid = document.getElementById('qr-grid');
+             qrGrid.innerHTML = ''; // Clear any existing content
          
              data.forEach((item) => {
                  const qrCard = document.createElement('div');
@@ -140,57 +229,107 @@
                  // Add card to grid
                  qrGrid.appendChild(qrCard);
              });
-            document.getElementById('generating-text').style.display = 'none';
+             
+             document.getElementById('generating-text').style.display = 'none';
+             document.getElementById('print-btn').style.display = 'block';
          }
          
          function printPage() {
              window.print();
          }
          
-      </script>
-      <script>      
-          function capitalizeFirstLetter(string) {
-          return string
-          .toLowerCase() // Convert the entire string to lowercase
-          .split(' ') // Split the string into an array of words
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
-          .join(' '); // Join the array of words back into a single string
-          }
+         function capitalizeFirstLetter(string) {
+             return string
+             .toLowerCase() // Convert the entire string to lowercase
+             .split(' ') // Split the string into an array of words
+             .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
+             .join(' '); // Join the array of words back into a single string
+         }
          
-          window.onload = async function () {
-   try {
-      // First, fetch ordered by class
-      data = await selectData(
-         "students",
-         false, // fetchSingle
-         "name, class, access_token",
-         ["class"], // matchColumns
-         ["7-A3"], // matchValues
-         "class", // orderByColumn
-         "asc", // orderDirection
-         [] // customFilters
-      );
-
-      // Now, sort the result by name (second level sort)
-      if (data) {
-         data.sort((a, b) => {
-            // First compare by class (redundant here since already ordered by class)
-            if (a.class < b.class) return -1;
-            if (a.class > b.class) return 1;
-
-            // Then compare by name
-            return a.name.localeCompare(b.name);
-         });
-
-         console.log("Fetched Students:", data);
-         generateAllQRCodes();
-      }
-   } catch (err) {
-      console.error("Failed to fetch student data:", err);
-   }
-};
-
+         // Populate class selection options
+         function populateClassOptions() {
+             const classSelect = document.getElementById('class-select');
+             
+             // Add regular classes from 1-A1 to 10-A4
+             for (let grade = 1; grade <= 10; grade++) {
+                 for (let section = 1; section <= 4; section++) {
+                     const className = `${grade}-A${section}`;
+                     const option = document.createElement('option');
+                     option.value = className;
+                     option.textContent = className;
+                     classSelect.appendChild(option);
+                 }
+             }
+             
+             // Add special classes for 11th and 12th grades
+             const specialClasses = ['11-SCI', '11-COM', '11-HUM', '12-SCI', '12-COM', '12-HUM'];
+             specialClasses.forEach(className => {
+                 const option = document.createElement('option');
+                 option.value = className;
+                 option.textContent = className;
+                 classSelect.appendChild(option);
+             });
+         }
+         
+         // Fetch student data based on selected class
+         async function fetchStudentData(selectedClass) {
+             document.getElementById('generating-text').style.display = 'block';
+             document.getElementById('print-btn').style.display = 'none';
+             
+             try {
+                 let matchColumns = [];
+                 let matchValues = [];
+                 
+                 // If "All Classes" is not selected, use the specific class for filtering
+                 if (selectedClass !== 'all') {
+                     matchColumns = ["class"];
+                     matchValues = [selectedClass];
+                 }
+                 
+                 // Fetch student data
+                 data = await selectData(
+                     "students",
+                     false, // fetchSingle
+                     "name, class, access_token",
+                     matchColumns, // matchColumns
+                     matchValues, // matchValues
+                     "class", // orderByColumn
+                     "asc", // orderDirection
+                     [] // customFilters
+                 );
+                 
+                 // Sort by class and then by name
+                 if (data) {
+                     data.sort((a, b) => {
+                         // First compare by class
+                         if (a.class < b.class) return -1;
+                         if (a.class > b.class) return 1;
+                         
+                         // Then compare by name
+                         return a.name.localeCompare(b.name);
+                     });
+                     
+                     console.log("Fetched Students:", data);
+                     generateAllQRCodes();
+                 }
+             } catch (err) {
+                 console.error("Failed to fetch student data:", err);
+                 document.getElementById('generating-text').style.display = 'none';
+                 document.getElementById('generating-text').textContent = 'Error loading data';
+             }
+         }
+         
+         window.onload = function() {
+             // Initialize the class selection dialog
+             populateClassOptions();
+             
+             // Set up the event listener for class selection
+             document.getElementById('select-class-btn').addEventListener('click', function() {
+                 const selectedClass = document.getElementById('class-select').value;
+                 document.getElementById('class-dialog-overlay').style.display = 'none';
+                 fetchStudentData(selectedClass);
+             });
+         };
       </script>
-      
    </body>
 </html>
