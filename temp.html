@@ -248,7 +248,8 @@
       </div>
       <script>
          let data = [];
-         let qrCodeSize = 200; // Default size (Large)
+         let qrCodeSize = 140; // Default size (Small)
+         let instructionText = '<br><strong>Paste this QR code in your diary.</strong>';
          
          function generateAllQRCodes() {
              const qrGrid = document.getElementById('qr-grid');
@@ -263,7 +264,7 @@
                  label.className = 'qr-label';
          
                  // Prepare label text
-                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}`;
+                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}${instructionText}`;
                  label.innerHTML = labelText;
          
                  // Generate QR code with the selected size
@@ -409,7 +410,7 @@
              });
              
              // Set default size (Large)
-             setQRCodeSize('large');
+             setQRCodeSize('small');
          };
       </script>
    </body>
