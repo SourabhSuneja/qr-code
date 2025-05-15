@@ -129,7 +129,7 @@
             font-size: 24px;
          }
          
-         #class-select {
+         #class-select, #size-select {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
@@ -141,12 +141,24 @@
             transition: border-color 0.3s;
          }
          
-         #class-select:focus {
+         #class-select:focus, #size-select:focus {
             border-color: #4CAF50;
          }
          
-         #class-select option {
+         #class-select option, #size-select option {
             padding: 10px;
+         }
+         
+         .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+         }
+         
+         .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
          }
          
          #select-class-btn {
@@ -166,13 +178,39 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
          }
          
+         /* Small QR code grid style */
+         .qr-size-small #qr-grid {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+         }
+         
+         /* Medium QR code grid style */
+         .qr-size-medium #qr-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+         }
+         
+         /* Large QR code grid style */
+         .qr-size-large #qr-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+         }
+         
          @media print {
          button, h1, #class-dialog-overlay {
-         display: none;
+            display: none;
          }
-         html, body, #qr-grid {
-         padding: 0;
-         margin: 0;
+         html, body {
+            padding: 0;
+            margin: 0;
+            width: 210mm; /* A4 width */
+            height: 297mm; /* A4 height */
+         }
+         #qr-grid {
+            padding: 10mm;
+            page-break-inside: avoid;
+         }
+         .qr-card {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #eee;
          }
          }
       </style>
@@ -183,11 +221,22 @@
       <!-- Class Selection Dialog -->
       <div id="class-dialog-overlay">
         <div id="class-dialog">
-            <h2>Select Class for QR Code Generation</h2>
-            <select id="class-select">
-                <option value="all">All Classes</option>
-                <!-- Options will be dynamically populated by JavaScript -->
-            </select>
+            <h2>Generate QR Codes</h2>
+            <div class="form-group">
+                <label for="class-select">Select Class:</label>
+                <select id="class-select">
+                    <option value="all">All Classes</option>
+                    <!-- Options will be dynamically populated by JavaScript -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="size-select">QR Code Size:</label>
+                <select id="size-select">
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large" selected>Large</option>
+                </select>
+            </div>
             <button id="select-class-btn">Generate QR Codes</button>
         </div>
       </div>
@@ -199,6 +248,8 @@
       </div>
       <script>
          let data = [];
+         let qrCodeSize = 140; // Default size (Small)
+         let instructionText = '<br><strong>Paste in your notebook/diary as instructed.</strong>';
          
          function generateAllQRCodes() {
              const qrGrid = document.getElementById('qr-grid');
@@ -213,12 +264,12 @@
                  label.className = 'qr-label';
          
                  // Prepare label text
-                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}<br><strong>Paste this QR code in your diary.</strong>`;
+                 const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}${instructionText}`;
                  label.innerHTML = labelText;
          
-                 // Generate QR code
+                 // Generate QR code with the selected size
                  const qrData = String(item.access_token);
-                 QRCode.toCanvas(canvas, qrData, { width: 200 }, (error) => {
+                 QRCode.toCanvas(canvas, qrData, { width: qrCodeSize }, (error) => {
                      if (error) console.error(error);
                  });
          
@@ -269,6 +320,28 @@
                  option.textContent = className;
                  classSelect.appendChild(option);
              });
+         }
+         
+         // Set QR code size based on user selection
+         function setQRCodeSize(sizeOption) {
+             // Remove any existing size classes
+             document.body.classList.remove('qr-size-small', 'qr-size-medium', 'qr-size-large');
+             
+             switch(sizeOption) {
+                 case 'small':
+                     qrCodeSize = 140;
+                     document.body.classList.add('qr-size-small');
+                     break;
+                 case 'medium':
+                     qrCodeSize = 170;
+                     document.body.classList.add('qr-size-medium');
+                     break;
+                 case 'large':
+                 default:
+                     qrCodeSize = 200;
+                     document.body.classList.add('qr-size-large');
+                     break;
+             }
          }
          
          // Fetch student data based on selected class
@@ -323,12 +396,21 @@
              // Initialize the class selection dialog
              populateClassOptions();
              
-             // Set up the event listener for class selection
+             // Set up the event listener for class selection and size selection
              document.getElementById('select-class-btn').addEventListener('click', function() {
                  const selectedClass = document.getElementById('class-select').value;
+                 const selectedSize = document.getElementById('size-select').value;
+                 
+                 // Set QR code size
+                 setQRCodeSize(selectedSize);
+                 
+                 // Hide the dialog and fetch data
                  document.getElementById('class-dialog-overlay').style.display = 'none';
                  fetchStudentData(selectedClass);
              });
+             
+             // Set default size (Large)
+             setQRCodeSize('small');
          };
       </script>
    </body>
