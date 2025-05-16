@@ -268,7 +268,7 @@
                  label.innerHTML = labelText;
          
                  // Generate QR code with the selected size
-                 const qrData = String(item.access_token);
+                 const qrData = String('https://sourabhsuneja.github.io/academic-resources/result.html?token=' + item.access_token);
                  QRCode.toCanvas(canvas, qrData, { width: qrCodeSize }, (error) => {
                      if (error) console.error(error);
                  });
