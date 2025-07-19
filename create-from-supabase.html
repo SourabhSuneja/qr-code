@@ -51,6 +51,16 @@
          margin-top: 6px;
          display: block;
          }
+         .link {
+         margin: 8px auto;
+         display: block;
+         padding: 10px;
+         background: #002B5B;
+         color: white;
+         text-align: center;
+         border-radius: 3px;
+         text-decoration: none;
+         }
          button {
          display: inline-block;
          margin: 10px auto;
@@ -194,7 +204,7 @@
          }
          
          @media print {
-         button, h1, #class-dialog-overlay {
+         button, h1, #class-dialog-overlay, .link {
             display: none;
          }
          html, body {
@@ -262,6 +272,12 @@
                  const canvas = document.createElement('canvas');
                  const label = document.createElement('div');
                  label.className = 'qr-label';
+
+                 const link = document.createElement('a');
+                 link.className = 'link';
+                 link.innerText = 'View Result';
+                 link.href = 'https://sourabhsuneja.github.io/academic-resources/result.html?token=' + item.access_token;
+                  link.target = '_blank';
          
                  // Prepare label text
                  const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}${instructionText}`;
@@ -276,6 +292,7 @@
                  // Append canvas and label to card
                  qrCard.appendChild(canvas);
                  qrCard.appendChild(label);
+                 qrCard.appendChild(link);
          
                  // Add card to grid
                  qrGrid.appendChild(qrCard);
