@@ -210,42 +210,78 @@
 
          .filter-row {
             display: flex;
-            gap: 15px;
-            align-items: center;
+            gap: 20px;
             flex-wrap: wrap;
             margin-bottom: 15px;
          }
 
          .filter-group {
             flex: 1;
-            min-width: 200px;
+            min-width: 250px;
          }
 
-         .filter-group label {
+         .filter-group > label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 16px;
             color: #333;
          }
 
-         .filter-select {
-            width: 100%;
-            padding: 8px 12px;
+         .checkbox-container {
+            max-height: 200px;
+            overflow-y: auto;
             border: 2px solid #ddd;
             border-radius: 6px;
+            padding: 10px;
+            background: #fafafa;
+         }
+
+         .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+         }
+
+         .checkbox-item:hover {
+            background-color: #f0f0f0;
+         }
+
+         .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+            cursor: pointer;
+         }
+
+         .checkbox-item label {
+            cursor: pointer;
             font-size: 14px;
-            background: white;
-            outline: none;
-            transition: border-color 0.3s;
+            color: #333;
+            margin: 0;
+            flex: 1;
          }
 
-         .filter-select:focus {
-            border-color: #4CAF50;
+         .select-all-container {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #e8f5e8;
+            border-radius: 4px;
+            border: 1px solid #4CAF50;
          }
 
-         .filter-select[multiple] {
-            height: 120px;
+         .select-all-container input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+         }
+
+         .select-all-container label {
+            font-weight: bold;
+            color: #2E7D32;
+            cursor: pointer;
+            margin: 0;
          }
 
          .filter-buttons {
@@ -359,16 +395,24 @@
          <h3>🔍 Filter QR Codes</h3>
          <div class="filter-row">
             <div class="filter-group">
-               <label for="filter-class">Select Classes:</label>
-               <select id="filter-class" class="filter-select" multiple>
-                  <!-- Options will be populated dynamically -->
-               </select>
+               <label>Select Classes:</label>
+               <div class="select-all-container">
+                  <input type="checkbox" id="select-all-classes" onchange="toggleAllClasses()">
+                  <label for="select-all-classes">Select All Classes</label>
+               </div>
+               <div id="class-checkboxes" class="checkbox-container">
+                  <!-- Class checkboxes will be populated dynamically -->
+               </div>
             </div>
             <div class="filter-group">
-               <label for="filter-student">Select Students:</label>
-               <select id="filter-student" class="filter-select" multiple>
-                  <!-- Options will be populated dynamically -->
-               </select>
+               <label>Select Students:</label>
+               <div class="select-all-container">
+                  <input type="checkbox" id="select-all-students" onchange="toggleAllStudents()">
+                  <label for="select-all-students">Select All Students</label>
+               </div>
+               <div id="student-checkboxes" class="checkbox-container">
+                  <!-- Student checkboxes will be populated dynamically -->
+               </div>
             </div>
          </div>
          <div class="filter-buttons">
@@ -441,12 +485,12 @@
          }
 
          function populateFilterOptions() {
-            const filterClassSelect = document.getElementById('filter-class');
-            const filterStudentSelect = document.getElementById('filter-student');
+            const classCheckboxContainer = document.getElementById('class-checkboxes');
+            const studentCheckboxContainer = document.getElementById('student-checkboxes');
             
-            // Clear existing options
-            filterClassSelect.innerHTML = '';
-            filterStudentSelect.innerHTML = '';
+            // Clear existing checkboxes
+            classCheckboxContainer.innerHTML = '';
+            studentCheckboxContainer.innerHTML = '';
             
             // Get unique classes and students
             const classes = [...new Set(data.map(item => item.class))].sort();
@@ -458,28 +502,70 @@
                return a.name.localeCompare(b.name);
             });
             
-            // Populate class filter
+            // Populate class checkboxes
             classes.forEach(className => {
-               const option = document.createElement('option');
-               option.value = className;
-               option.textContent = className;
-               filterClassSelect.appendChild(option);
+               const checkboxItem = document.createElement('div');
+               checkboxItem.className = 'checkbox-item';
+               
+               const checkbox = document.createElement('input');
+               checkbox.type = 'checkbox';
+               checkbox.id = `class-${className}`;
+               checkbox.value = className;
+               checkbox.name = 'class-filter';
+               
+               const label = document.createElement('label');
+               label.htmlFor = `class-${className}`;
+               label.textContent = className;
+               
+               checkboxItem.appendChild(checkbox);
+               checkboxItem.appendChild(label);
+               classCheckboxContainer.appendChild(checkboxItem);
             });
             
-            // Populate student filter
-            students.forEach(student => {
-               const option = document.createElement('option');
-               option.value = `${student.name}|${student.class}`;
-               option.textContent = `${capitalizeFirstLetter(student.name)} (${student.class})`;
-               filterStudentSelect.appendChild(option);
+            // Populate student checkboxes
+            students.forEach((student, index) => {
+               const checkboxItem = document.createElement('div');
+               checkboxItem.className = 'checkbox-item';
+               
+               const checkbox = document.createElement('input');
+               checkbox.type = 'checkbox';
+               checkbox.id = `student-${index}`;
+               checkbox.value = `${student.name}|${student.class}`;
+               checkbox.name = 'student-filter';
+               
+               const label = document.createElement('label');
+               label.htmlFor = `student-${index}`;
+               label.textContent = `${capitalizeFirstLetter(student.name)} (${student.class})`;
+               
+               checkboxItem.appendChild(checkbox);
+               checkboxItem.appendChild(label);
+               studentCheckboxContainer.appendChild(checkboxItem);
+            });
+         }
+
+         function toggleAllClasses() {
+            const selectAllCheckbox = document.getElementById('select-all-classes');
+            const classCheckboxes = document.querySelectorAll('input[name="class-filter"]');
+            
+            classCheckboxes.forEach(checkbox => {
+               checkbox.checked = selectAllCheckbox.checked;
+            });
+         }
+
+         function toggleAllStudents() {
+            const selectAllCheckbox = document.getElementById('select-all-students');
+            const studentCheckboxes = document.querySelectorAll('input[name="student-filter"]');
+            
+            studentCheckboxes.forEach(checkbox => {
+               checkbox.checked = selectAllCheckbox.checked;
             });
          }
 
          function applyFilters() {
-            const selectedClasses = Array.from(document.getElementById('filter-class').selectedOptions)
-               .map(option => option.value);
-            const selectedStudents = Array.from(document.getElementById('filter-student').selectedOptions)
-               .map(option => option.value);
+            const selectedClasses = Array.from(document.querySelectorAll('input[name="class-filter"]:checked'))
+               .map(checkbox => checkbox.value);
+            const selectedStudents = Array.from(document.querySelectorAll('input[name="student-filter"]:checked'))
+               .map(checkbox => checkbox.value);
             
             const qrCards = document.querySelectorAll('.qr-card');
             let visibleCount = 0;
@@ -506,13 +592,22 @@
                      });
                   }
                   
-                  // Show card if both conditions are met (OR logic if only one filter type is selected)
+                  // Show card if it matches the selected criteria
                   if (selectedClasses.length > 0 && selectedStudents.length > 0) {
-                     // Both filters selected - student must match both
-                     showCard = classMatch && studentMatch;
-                  } else {
-                     // Only one filter type selected - OR logic
-                     showCard = classMatch || studentMatch;
+                     // Both filters have selections - show if matches both class AND student
+                     showCard = selectedClasses.includes(cardClass) && selectedStudents.some(studentValue => {
+                        const [studentName, studentClass] = studentValue.split('|');
+                        return studentName.toLowerCase() === cardName && studentClass === cardClass;
+                     });
+                  } else if (selectedClasses.length > 0) {
+                     // Only class filter has selections
+                     showCard = selectedClasses.includes(cardClass);
+                  } else if (selectedStudents.length > 0) {
+                     // Only student filter has selections
+                     showCard = selectedStudents.some(studentValue => {
+                        const [studentName, studentClass] = studentValue.split('|');
+                        return studentName.toLowerCase() === cardName && studentClass === cardClass;
+                     });
                   }
                }
                
@@ -528,9 +623,17 @@
          }
 
          function resetFilters() {
-            document.getElementById('filter-class').value = '';
-            document.getElementById('filter-student').value = '';
+            // Uncheck all checkboxes
+            document.querySelectorAll('input[name="class-filter"]').forEach(checkbox => {
+               checkbox.checked = false;
+            });
+            document.querySelectorAll('input[name="student-filter"]').forEach(checkbox => {
+               checkbox.checked = false;
+            });
+            document.getElementById('select-all-classes').checked = false;
+            document.getElementById('select-all-students').checked = false;
             
+            // Show all QR cards
             const qrCards = document.querySelectorAll('.qr-card');
             qrCards.forEach(card => {
                card.classList.remove('hidden');
