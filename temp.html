@@ -36,6 +36,9 @@
          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
          text-align: center;
          }
+         .qr-card.hidden {
+         display: none;
+         }
          .qr-label {
          margin-top: 10px;
          font-size: 14px;
@@ -50,6 +53,16 @@
          .qr-label strong {
          margin-top: 6px;
          display: block;
+         }
+         .link {
+         margin: 8px auto;
+         display: block;
+         padding: 10px;
+         background: #002B5B;
+         color: white;
+         text-align: center;
+         border-radius: 3px;
+         text-decoration: none;
          }
          button {
          display: inline-block;
@@ -177,6 +190,106 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
          }
+
+         /* Filter Controls Styles */
+         #filter-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: none;
+         }
+
+         #filter-controls h3 {
+            margin-top: 0;
+            color: #2E7D32;
+            font-size: 18px;
+            margin-bottom: 15px;
+         }
+
+         .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+         }
+
+         .filter-group {
+            flex: 1;
+            min-width: 200px;
+         }
+
+         .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+         }
+
+         .filter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            outline: none;
+            transition: border-color 0.3s;
+         }
+
+         .filter-select:focus {
+            border-color: #4CAF50;
+         }
+
+         .filter-select[multiple] {
+            height: 120px;
+         }
+
+         .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+         }
+
+         .filter-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+         }
+
+         .apply-filter-btn {
+            background-color: #4CAF50;
+            color: white;
+         }
+
+         .apply-filter-btn:hover {
+            background-color: #45a049;
+         }
+
+         .reset-filter-btn {
+            background-color: #f44336;
+            color: white;
+         }
+
+         .reset-filter-btn:hover {
+            background-color: #da190b;
+         }
+
+         .results-info {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #2E7D32;
+            text-align: center;
+         }
          
          /* Small QR code grid style */
          .qr-size-small #qr-grid {
@@ -194,7 +307,7 @@
          }
          
          @media print {
-         button, h1, #class-dialog-overlay {
+         button, h1, #class-dialog-overlay, .link, #filter-controls {
             display: none;
          }
          html, body {
@@ -232,13 +345,37 @@
             <div class="form-group">
                 <label for="size-select">QR Code Size:</label>
                 <select id="size-select">
-                    <option value="small">Small</option>
+                    <option value="small" selected>Small</option>
                     <option value="medium">Medium</option>
-                    <option value="large" selected>Large</option>
+                    <option value="large">Large</option>
                 </select>
             </div>
             <button id="select-class-btn">Generate QR Codes</button>
         </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div id="filter-controls">
+         <h3>🔍 Filter QR Codes</h3>
+         <div class="filter-row">
+            <div class="filter-group">
+               <label for="filter-class">Select Classes:</label>
+               <select id="filter-class" class="filter-select" multiple>
+                  <!-- Options will be populated dynamically -->
+               </select>
+            </div>
+            <div class="filter-group">
+               <label for="filter-student">Select Students:</label>
+               <select id="filter-student" class="filter-select" multiple>
+                  <!-- Options will be populated dynamically -->
+               </select>
+            </div>
+         </div>
+         <div class="filter-buttons">
+            <button class="filter-btn apply-filter-btn" onclick="applyFilters()">Apply Filters</button>
+            <button class="filter-btn reset-filter-btn" onclick="resetFilters()">Show All</button>
+         </div>
+         <div id="results-info" class="results-info"></div>
       </div>
       
       <div id="qr-grid"></div>
@@ -249,26 +386,36 @@
       <script>
          let data = [];
          let qrCodeSize = 140; // Default size (Small)
-         let instructionText = '<br><strong>Paste this QR code in your diary.</strong>';
+         let instructionText = '<br><strong>Paste it in your diary.</strong>';
+         let allGeneratedCodes = false; // Track if all codes were generated
          
          function generateAllQRCodes() {
              const qrGrid = document.getElementById('qr-grid');
              qrGrid.innerHTML = ''; // Clear any existing content
          
-             data.forEach((item) => {
+             data.forEach((item, index) => {
                  const qrCard = document.createElement('div');
                  qrCard.className = 'qr-card';
+                 qrCard.setAttribute('data-class', item.class);
+                 qrCard.setAttribute('data-name', item.name.toLowerCase());
+                 qrCard.setAttribute('data-index', index);
          
                  const canvas = document.createElement('canvas');
                  const label = document.createElement('div');
                  label.className = 'qr-label';
+
+                 const link = document.createElement('a');
+                 link.className = 'link';
+                 link.innerText = 'View Result';
+                 link.href = 'https://sourabhsuneja.github.io/academic-resources/result.html?token=' + item.access_token;
+                  link.target = '_blank';
          
                  // Prepare label text
                  const labelText = `<h2>Student Details</h2>Name: ${capitalizeFirstLetter(item.name)}, Class: ${item.class}${instructionText}`;
                  label.innerHTML = labelText;
          
                  // Generate QR code with the selected size
-                 const qrData = String(item.access_token);
+                 const qrData = String('https://sourabhsuneja.github.io/academic-resources/result.html?token=' + item.access_token);
                  QRCode.toCanvas(canvas, qrData, { width: qrCodeSize }, (error) => {
                      if (error) console.error(error);
                  });
@@ -276,6 +423,7 @@
                  // Append canvas and label to card
                  qrCard.appendChild(canvas);
                  qrCard.appendChild(label);
+                 qrCard.appendChild(link);
          
                  // Add card to grid
                  qrGrid.appendChild(qrCard);
@@ -283,6 +431,124 @@
              
              document.getElementById('generating-text').style.display = 'none';
              document.getElementById('print-btn').style.display = 'block';
+             
+             // Show filter controls only if "All Classes" was selected
+             if (allGeneratedCodes) {
+                populateFilterOptions();
+                document.getElementById('filter-controls').style.display = 'block';
+                updateResultsInfo();
+             }
+         }
+
+         function populateFilterOptions() {
+            const filterClassSelect = document.getElementById('filter-class');
+            const filterStudentSelect = document.getElementById('filter-student');
+            
+            // Clear existing options
+            filterClassSelect.innerHTML = '';
+            filterStudentSelect.innerHTML = '';
+            
+            // Get unique classes and students
+            const classes = [...new Set(data.map(item => item.class))].sort();
+            const students = data.map(item => ({
+               name: item.name,
+               class: item.class
+            })).sort((a, b) => {
+               if (a.class !== b.class) return a.class.localeCompare(b.class);
+               return a.name.localeCompare(b.name);
+            });
+            
+            // Populate class filter
+            classes.forEach(className => {
+               const option = document.createElement('option');
+               option.value = className;
+               option.textContent = className;
+               filterClassSelect.appendChild(option);
+            });
+            
+            // Populate student filter
+            students.forEach(student => {
+               const option = document.createElement('option');
+               option.value = `${student.name}|${student.class}`;
+               option.textContent = `${capitalizeFirstLetter(student.name)} (${student.class})`;
+               filterStudentSelect.appendChild(option);
+            });
+         }
+
+         function applyFilters() {
+            const selectedClasses = Array.from(document.getElementById('filter-class').selectedOptions)
+               .map(option => option.value);
+            const selectedStudents = Array.from(document.getElementById('filter-student').selectedOptions)
+               .map(option => option.value);
+            
+            const qrCards = document.querySelectorAll('.qr-card');
+            let visibleCount = 0;
+            
+            qrCards.forEach(card => {
+               const cardClass = card.getAttribute('data-class');
+               const cardName = card.getAttribute('data-name');
+               
+               let showCard = false;
+               
+               // If no filters are selected, show all cards
+               if (selectedClasses.length === 0 && selectedStudents.length === 0) {
+                  showCard = true;
+               } else {
+                  // Check class filter
+                  const classMatch = selectedClasses.length === 0 || selectedClasses.includes(cardClass);
+                  
+                  // Check student filter
+                  let studentMatch = selectedStudents.length === 0;
+                  if (!studentMatch) {
+                     studentMatch = selectedStudents.some(studentValue => {
+                        const [studentName, studentClass] = studentValue.split('|');
+                        return studentName.toLowerCase() === cardName && studentClass === cardClass;
+                     });
+                  }
+                  
+                  // Show card if both conditions are met (OR logic if only one filter type is selected)
+                  if (selectedClasses.length > 0 && selectedStudents.length > 0) {
+                     // Both filters selected - student must match both
+                     showCard = classMatch && studentMatch;
+                  } else {
+                     // Only one filter type selected - OR logic
+                     showCard = classMatch || studentMatch;
+                  }
+               }
+               
+               if (showCard) {
+                  card.classList.remove('hidden');
+                  visibleCount++;
+               } else {
+                  card.classList.add('hidden');
+               }
+            });
+            
+            updateResultsInfo(visibleCount);
+         }
+
+         function resetFilters() {
+            document.getElementById('filter-class').value = '';
+            document.getElementById('filter-student').value = '';
+            
+            const qrCards = document.querySelectorAll('.qr-card');
+            qrCards.forEach(card => {
+               card.classList.remove('hidden');
+            });
+            
+            updateResultsInfo();
+         }
+
+         function updateResultsInfo(visibleCount = null) {
+            const resultsInfo = document.getElementById('results-info');
+            const totalCount = data.length;
+            const displayCount = visibleCount !== null ? visibleCount : totalCount;
+            
+            if (visibleCount !== null && visibleCount < totalCount) {
+               resultsInfo.innerHTML = `Showing ${displayCount} of ${totalCount} QR codes`;
+            } else {
+               resultsInfo.innerHTML = `Showing all ${totalCount} QR codes`;
+            }
          }
          
          function printPage() {
@@ -348,6 +614,10 @@
          async function fetchStudentData(selectedClass) {
              document.getElementById('generating-text').style.display = 'block';
              document.getElementById('print-btn').style.display = 'none';
+             document.getElementById('filter-controls').style.display = 'none';
+             
+             // Set flag to track if all codes were generated
+             allGeneratedCodes = (selectedClass === 'all');
              
              try {
                  let matchColumns = [];
@@ -409,7 +679,7 @@
                  fetchStudentData(selectedClass);
              });
              
-             // Set default size (Large)
+             // Set default size (Small)
              setQRCodeSize('small');
          };
       </script>
