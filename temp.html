@@ -785,6 +785,37 @@
              // Set default size (Small)
              setQRCodeSize('small');
          };
+
+// Listen for changes on any class checkbox to dynamically update student checkboxes
+document.addEventListener('change', function (e) {
+   if (e.target && e.target.name === 'class-filter') {
+      updateStudentFilterBySelectedClasses();
+   }
+});
+
+function updateStudentFilterBySelectedClasses() {
+   const selectedClasses = Array.from(document.querySelectorAll('input[name="class-filter"]:checked'))
+      .map(cb => cb.value);
+
+   const studentContainer = document.getElementById('student-checkboxes');
+   const allStudentCheckboxes = studentContainer.querySelectorAll('.checkbox-item');
+
+   allStudentCheckboxes.forEach(item => {
+      const checkbox = item.querySelector('input');
+      const [studentName, studentClass] = checkbox.value.split('|');
+
+      // Show student if their class is selected or no class is selected
+      if (selectedClasses.length === 0 || selectedClasses.includes(studentClass)) {
+         item.style.display = '';
+      } else {
+         item.style.display = 'none';
+         checkbox.checked = false; // Optionally uncheck if hidden
+      }
+   });
+
+   // Also uncheck the "Select All Students" checkbox
+   document.getElementById('select-all-students').checked = false;
+}
       </script>
    </body>
 </html>
